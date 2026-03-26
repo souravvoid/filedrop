@@ -1,0 +1,131 @@
+.root {
+    -fx-background-color: #121212;
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.card {
+    -fx-background-color: #1c1c1e;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 4);
+}
+
+.title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.drop-zone {
+    -fx-border-color: #3a3a3c;
+    -fx-border-style: dashed;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+    -fx-background-color: #242426;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+}
+
+.drop-zone:hover {
+    -fx-border-color: #0a84ff;
+    -fx-background-color: #2c2c2e;
+}
+
+.muted-text {
+    -fx-text-fill: #98989d;
+    -fx-font-size: 14px;
+}
+
+.label-text {
+    -fx-text-fill: #ebebf5;
+    -fx-font-size: 14px;
+}
+
+.code-field {
+    -fx-background-color: #2c2c2e;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 8px;
+    -fx-background-radius: 6px;
+    -fx-border-color: #3a3a3c;
+    -fx-border-radius: 6px;
+    -fx-font-size: 14px;
+}
+
+.code-field:focused {
+    -fx-border-color: #0a84ff;
+}
+
+.btn {
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 6px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.btn-primary {
+    -fx-background-color: #0a84ff;
+    -fx-text-fill: white;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #007aff;
+}
+
+.btn-secondary {
+    -fx-background-color: #3a3a3c;
+    -fx-text-fill: white;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #48484a;
+}
+
+.btn-receive {
+    -fx-background-color: #30d158;
+    -fx-text-fill: white;
+}
+
+.btn-receive:hover {
+    -fx-background-color: #28cd41;
+}
+
+.btn-danger {
+    -fx-background-color: transparent;
+    -fx-border-color: #ff453a;
+    -fx-border-radius: 6px;
+    -fx-text-fill: #ff453a;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #ff453a;
+    -fx-text-fill: white;
+}
+
+.status-panel {
+    -fx-background-color: #1c1c1e;
+    -fx-background-radius: 12px;
+}
+
+.status-text {
+    -fx-text-fill: #ebebf5;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.metrics-text {
+    -fx-text-fill: #98989d;
+    -fx-font-size: 13px;
+}
+
+.progress-bar {
+    -fx-accent: #0a84ff;
+}
+
+.progress-bar > .track {
+    -fx-background-color: #3a3a3c;
+    -fx-background-radius: 4px;
+}
+
+.progress-bar > .bar {
+    -fx-background-radius: 4px;
+}

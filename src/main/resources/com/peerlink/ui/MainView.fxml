@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane styleClass="root" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.peerlink.ui.MainController">
+
+    <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+
+    <center>
+        <HBox spacing="25" alignment="CENTER">
+            <!-- LEFT PANEL: SEND -->
+            <VBox styleClass="card" spacing="20" HBox.hgrow="ALWAYS" prefWidth="350">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                
+                <Label text="Send File" styleClass="title" />
+                
+                <StackPane fx:id="dropZone" styleClass="drop-zone" prefHeight="160" onDragOver="#onDragOver" onDragDropped="#onDragDropped">
+                    <VBox alignment="CENTER" spacing="12">
+                        <Label fx:id="dropZoneLabel" text="Drag &amp; Drop here" styleClass="muted-text"/>
+                        <Button text="Select File" onAction="#onSelectFile" styleClass="btn, btn-secondary" />
+                    </VBox>
+                </StackPane>
+                
+                <VBox spacing="8">
+                    <Label text="Your Invite Code:" styleClass="label-text" />
+                    <HBox spacing="10">
+                        <TextField fx:id="sendCodeField" editable="false" promptText="Generated upon sending..." HBox.hgrow="ALWAYS" styleClass="code-field" />
+                        <Button text="Copy" onAction="#onCopyCode" styleClass="btn, btn-secondary" />
+                    </HBox>
+                </VBox>
+                
+                <Region VBox.vgrow="ALWAYS" />
+                <Button fx:id="sendBtn" text="Start Sending" onAction="#onSend" styleClass="btn, btn-primary" maxWidth="Infinity" />
+            </VBox>
+
+            <!-- RIGHT PANEL: RECEIVE -->
+            <VBox styleClass="card" spacing="20" HBox.hgrow="ALWAYS" prefWidth="350">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                
+                <Label text="Receive File" styleClass="title" />
+                
+                <VBox spacing="8">
+                    <Label text="Enter Invite Code to receive:" styleClass="label-text"/>
+                    <HBox spacing="10">
+                        <TextField fx:id="receiveCodeInput" promptText="e.g. 192.168.1.5:49823" HBox.hgrow="ALWAYS" styleClass="code-field" />
+                        <Button text="Paste" onAction="#onPasteCode" styleClass="btn, btn-secondary" />
+                    </HBox>
+                </VBox>
+
+                <Region VBox.vgrow="ALWAYS" />
+                <Button fx:id="receiveBtn" text="Receive File" onAction="#onReceive" styleClass="btn, btn-receive" maxWidth="Infinity" />
+            </VBox>
+        </HBox>
+    </center>
+
+    <bottom>
+        <VBox styleClass="status-panel, card" spacing="15" BorderPane.margin="$x4">
+            <BorderPane.margin>
+                <Insets top="25"/>
+            </BorderPane.margin>
+            <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
+            
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Label fx:id="statusLabel" text="Ready. Choose a file or paste a code." styleClass="status-text" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button fx:id="cancelBtn" text="Cancel Transfer" onAction="#onCancel" styleClass="btn, btn-danger" visible="false" managed="false" />
+                <Button fx:id="openFolderBtn" text="Open Folder" onAction="#onOpenFolder" styleClass="btn, btn-secondary" visible="false" managed="false" />
+            </HBox>
+            
+            <ProgressBar fx:id="progressBar" progress="0.0" maxWidth="Infinity" prefHeight="8" visible="false" managed="false"/>
+            
+            <HBox spacing="10" fx:id="metricsBox" visible="false" managed="false">
+                <Label fx:id="speedLabel" text="Speed: 0.0 MB/s" styleClass="metrics-text" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="etaLabel" text="ETA: --" styleClass="metrics-text" />
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>
