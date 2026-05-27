@@ -15,17 +15,15 @@ public class Main extends Application {
             throw new IllegalStateException("Cannot find MainView.fxml");
         }
         FXMLLoader loader = new FXMLLoader(resource);
-        Scene scene = new Scene(loader.load(), 700, 500);
+        Scene scene = new Scene(loader.load(), 800, 560);
 
-        // Load the new CSS
+        // Load the redesign CSS
         scene.getStylesheets().add(
             getClass().getResource("/com/peerlink/ui/peerlink.css").toExternalForm());
 
-        stage.setTitle("PeerLink");
+        stage.setTitle("PeerLink LocalSend");
         stage.setScene(scene);
-        stage.setResizable(true);
-        stage.setMinWidth(600);
-        stage.setMinHeight(400);
+        stage.setResizable(false);
 
         // Remove default JavaFX focus ring on startup
         scene.getRoot().requestFocus();

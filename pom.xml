@@ -6,9 +6,6 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         PROJECT COORDINATES
-         ═══════════════════════════════════════════════════════════ -->
     <groupId>com.peerlink</groupId>
     <artifactId>peerlink</artifactId>
     <version>1.0.0</version>
@@ -17,81 +14,71 @@
     <description>Secure P2P File Transfer — No Server Required</description>
     <url>https://github.com/souravvoid/filedrop</url>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         GLOBAL PROPERTIES
-         ═══════════════════════════════════════════════════════════ -->
     <properties>
-        <!-- Java version -->
         <maven.compiler.release>21</maven.compiler.release>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- JavaFX version -->
         <javafx.version>21.0.3</javafx.version>
+        <slf4j.version>2.0.13</slf4j.version>
+        <logback.version>1.5.6</logback.version>
 
-    <!-- ─────────────────────────────────────────────────────
-              MAIN CLASS
-              The entry point is: src/main/java/com/peerlink/ui/Main.java
-              This matches the actual package structure and FXML references
-              ───────────────────────────────────────────────────── -->
-         <app.main-class>com.peerlink.ui.Main</app.main-class>
+        <app.main-class>com.peerlink.ui.Main</app.main-class>
+        
+        <app.name>PeerLink</app.name>
+        <app.vendor>Lovepreet Singh</app.vendor>
+        <app.description>Secure P2P File Transfer</app.description>
+        <app.copyright>Copyright 2026</app.copyright>
+        <app.version>${project.version}</app.version>
+        
+        <app.upgrade.uuid>a1b2c3d4-e5f6-7890-abcd-ef1234567890</app.upgrade.uuid>
 
-        <!-- jpackage module-qualified name (module/class) -->
-        <!-- If you use module-info.java the format is: modulename/peerlink.Main -->
-        <!-- Without module-info.java (unnamed module): just the class name -->
-        <app.main-class.jfx>com.peerlink.ui.Main</app.main-class.jfx>
-
-        <!-- App metadata for jpackage -->
-        <app.name>Filedrop</app.name>
-        <app.vendor>Sourav</app.vendor>
-        <app.description>Secure P2P File Transfer — No Server Required</app.description>
-        <app.copyright>Copyright 2026 </app.copyright>
-        <app.version>1.0.0</app.version>
-
-        <!-- Skip native packaging by default.
-             Activated automatically by OS profile below. -->
-        <skipLinux>true</skipLinux>
-        <skipMac>true</skipMac>
+        <!-- Skip properties for native packaging -->
+        <skipRpm>true</skipRpm>
+        <skipDeb>true</skipDeb>
         <skipWindows>true</skipWindows>
+        <skipMac>true</skipMac>
+        <skipAppImage>true</skipAppImage>
     </properties>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         DEPENDENCIES
-         Only JavaFX — zero external crypto or networking deps.
-         All crypto uses javax.crypto (JDK built-in).
-         ═══════════════════════════════════════════════════════════ -->
     <dependencies>
-
-        <!-- JavaFX Controls (Button, Label, ProgressBar, TextField…) -->
+        <!-- JavaFX -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-
-        <!-- JavaFX FXML (FXMLLoader, @FXML annotation processing) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- NOTE: javafx-base and javafx-graphics are pulled in
-             transitively by javafx-controls. No need to declare them. -->
-
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
     </dependencies>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         BUILD PLUGINS
-         ═══════════════════════════════════════════════════════════ -->
     <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
+            <!-- Clean Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.3.2</version>
+            </plugin>
 
-            <!-- ─────────────────────────────────────────────────
-                 1. COMPILER PLUGIN
-                 Compile all sources to Java 21 bytecode.
-                 ───────────────────────────────────────────────── -->
+            <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -99,101 +86,12 @@
                 <configuration>
                     <release>21</release>
                     <compilerArgs>
-                        <!-- Allow access to internal JDK APIs used
-                             by JavaFX at compile time -->
                         <arg>--add-opens=java.base/java.lang=ALL-UNNAMED</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
 
-            <!-- ─────────────────────────────────────────────────
-                 2. SHADE PLUGIN — Fat JAR
-                 Produces: target/peerlink-1.0.0-shaded.jar
-                 Contains: all JavaFX classes + your classes
-                 Used by:  jpackage as input
-                 ───────────────────────────────────────────────── -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Output the shaded JAR with a distinct name
-                                 so jpackage uses it as input -->
-                            <outputFile>
-                                ${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar
-                            </outputFile>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-
-                            <!-- Strip cryptographic signature files from
-                                 dependencies — required for shaded JARs.
-                                 Without this: SecurityException at startup. -->
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                        <exclude>META-INF/MANIFEST.MF</exclude>
-                                        <exclude>META-INF/versions/**</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-
-                            <transformers>
-                                <!-- Set the Main-Class manifest entry.
-                                     FIXED: was com.peerlink.ui.Main — now peerlink.Main -->
-                                 <transformer implementation=
-                                                      "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                     <mainClass>com.peerlink.ui.Main</mainClass>
-                                     <manifestEntries>
-                                        <!-- Allow JavaFX to access internal APIs -->
-                                        <Add-Opens>java.base/java.lang=ALL-UNNAMED</Add-Opens>
-                                    </manifestEntries>
-                                </transformer>
-
-                                <!-- Merge META-INF/services/* files from all JARs.
-                                     Required for JavaFX ServiceLoader registration. -->
-                                <transformer implementation=
-                                                     "org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- ─────────────────────────────────────────────────
-                 3. JAVAFX MAVEN PLUGIN — mvn javafx:run
-                 Used for development: runs the app without building a JAR.
-                 FIXED: mainClass was com.peerlink.ui.Main → peerlink.Main
-                 ───────────────────────────────────────────────── -->
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.8</version>
-                <configuration>
-                    <!-- Format: mainClass for unnamed module (no module-info.java)
-                         If you add module-info.java later, change to:
-                         moduleName/peerlink.Main -->
-                     <mainClass>com.peerlink.ui.Main</mainClass>
-                    <options>
-                        <option>--add-opens</option>
-                        <option>java.base/java.lang=ALL-UNNAMED</option>
-                    </options>
-                </configuration>
-            </plugin>
-
-            <!-- ─────────────────────────────────────────────────
-                 4. RESOURCES PLUGIN
-                 Copies src/main/resources → target/app-resources
-                 jpackage reads icons from here during native packaging.
-                 ───────────────────────────────────────────────── -->
+            <!-- Resources Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -206,14 +104,11 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>
-                                ${project.build.directory}/app-resources
-                            </outputDirectory>
+                            <outputDirectory>${project.build.directory}/app-resources</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>src/main/resources</directory>
-                                    <!-- Include all resources including FXML and CSS -->
-                                    <filtering>false</filtering>
+                                    <filtering>true</filtering>
                                 </resource>
                             </resources>
                         </configuration>
@@ -221,216 +116,130 @@
                 </executions>
             </plugin>
 
-            <!-- ─────────────────────────────────────────────────
-                 5. EXEC PLUGIN — jpackage native installers
-                 Each execution is skipped by default.
-                 Activated by OS profiles at the bottom of this file.
+            <!-- Shade Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>${project.build.directory}/${project.build.finalName}-shaded.jar</outputFile>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>META-INF/versions/**</exclude>
+                                        <exclude>module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${app.main-class}</mainClass>
+                                    <manifestEntries>
+                                        <Add-Opens>java.base/java.lang=ALL-UNNAMED</Add-Opens>
+                                    </manifestEntries>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-                 HOW TO BUILD MANUALLY:
-                   Linux .deb:  mvn package -DskipLinux=false
-                   Linux .rpm:  mvn package -DskipLinux=false
-                   macOS .dmg:  mvn package -DskipMac=false   (on macOS)
+            <!-- JavaFX Plugin -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>${app.main-class}</mainClass>
+                    <options>
+                        <option>--add-opens</option>
+                        <option>java.base/java.lang=ALL-UNNAMED</option>
+                    </options>
+                </configuration>
+            </plugin>
 
-                 OR use the OS profiles which auto-detect:
-                   On Linux:  mvn package   (profile 'linux' activates)
-                   On macOS:  mvn package   (profile 'mac' activates)
-                   On Windows: mvn package  (profile 'windows' activates)
-                 ───────────────────────────────────────────────── -->
+            <!-- Exec Plugin for jpackage -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <executions>
-
-                    <!-- ── Linux .deb (Ubuntu/Debian) ──────────── -->
-                    <execution>
-                        <id>package-linux-deb</id>
-                        <phase>package</phase>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <skip>${skipLinux}</skip>
-                            <executable>jpackage</executable>
-                            <arguments>
-                                <argument>--type</argument>
-                                <argument>deb</argument>
-                                <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
-                                <argument>--name</argument>
-                                <argument>${app.name}</argument>
-                                <argument>--main-jar</argument>
-                                 <!-- References the shaded JAR built by shade plugin -->
-                                 <argument>${project.artifactId}-${project.version}-shaded.jar</argument>
-                                 <argument>--main-class</argument>
-                                 <argument>com.peerlink.ui.Main</argument>
-                                 <argument>--app-version</argument>
-                                 <argument>${app.version}</argument>
-                                 <argument>--vendor</argument>
-                                 <argument>${app.vendor}</argument>
-                                 <argument>--description</argument>
-                                 <argument>${app.description}</argument>
-                                 <argument>--copyright</argument>
-                                 <argument>${app.copyright}</argument>
-                                 <argument>--icon</argument>
-                                <argument>src/main/resources/icon.png</argument>
-                                <argument>--linux-package-name</argument>
-                                <argument>peerlink</argument>
-                                <argument>--linux-app-category</argument>
-                                <argument>net</argument>
-                                <argument>--linux-menu-group</argument>
-                                <argument>Network;FileTransfer;</argument>
-                                <argument>--linux-shortcut</argument>
-                                <argument>--linux-deb-maintainer</argument>
-                                <argument>semwalsourav4@gmail.com</argument>
-                                <argument>--java-options</argument>
-                                <argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
-                                <argument>--java-options</argument>
-                                <argument>-Xmx512m</argument>
-                                <argument>--java-options</argument>
-                                <argument>-Xms64m</argument>
-                                <argument>--dest</argument>
-                                <argument>dist/linux</argument>
-                                <argument>--verbose</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-
-                    <!-- ── Linux .rpm (Fedora/RHEL/openSUSE) ───── -->
+                    
+                    <!-- Linux RPM -->
                     <execution>
                         <id>package-linux-rpm</id>
                         <phase>package</phase>
                         <goals><goal>exec</goal></goals>
                         <configuration>
-                            <skip>${skipLinux}</skip>
+                            <skip>${skipRpm}</skip>
                             <executable>jpackage</executable>
                             <arguments>
-                                <argument>--type</argument>
-                                <argument>rpm</argument>
-                                <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
-                                <argument>--name</argument>
-                                <argument>${app.name}</argument>
-                                 <argument>--main-jar</argument>
-                                 <argument>${project.artifactId}-${project.version}-shaded.jar</argument>
-                                 <argument>--main-class</argument>
-                                 <argument>com.peerlink.ui.Main</argument>
-                                 <argument>--app-version</argument>
-                                 <argument>${app.version}</argument>
-                                 <argument>--vendor</argument>
-                                 <argument>${app.vendor}</argument>
-                                 <argument>--description</argument>
-                                 <argument>${app.description}</argument>
-                                 <argument>--copyright</argument>
-                                 <argument>${app.copyright}</argument>
-                                 <argument>--icon</argument>
-                                 <argument>src/main/resources/icon.png</argument>
-                                 <argument>--linux-package-name</argument>
-                                 <argument>peerlink</argument>
-                                 <argument>--linux-app-category</argument>
-                                 <argument>net</argument>
-                                 <argument>--linux-menu-group</argument>
-                                 <argument>Network;FileTransfer;</argument>
-                                 <argument>--linux-shortcut</argument>
-                                 <argument>--linux-rpm-license-type</argument>
-                                 <argument>MIT</argument>
-                                 <argument>--java-options</argument>
-                                 <argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
-                                 <argument>--java-options</argument>
-                                 <argument>-Xmx512m</argument>
-                                 <argument>--java-options</argument>
-                                 <argument>-Xms64m</argument>
-                                 <argument>--dest</argument>
-                                 <argument>dist/linux</argument>
-                                 <argument>--verbose</argument>
+                                <argument>--type</argument><argument>rpm</argument>
+                                <argument>--input</argument><argument>${project.build.directory}</argument>
+                                <argument>--name</argument><argument>${app.name}</argument>
+                                <argument>--main-jar</argument><argument>${project.build.finalName}-shaded.jar</argument>
+                                <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                <argument>--app-version</argument><argument>${app.version}</argument>
+                                <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                <argument>--description</argument><argument>${app.description}</argument>
+                                <argument>--copyright</argument><argument>${app.copyright}</argument>
+                                <argument>--icon</argument><argument>src/main/resources/icon.png</argument>
+                                <argument>--linux-package-name</argument><argument>peerlink</argument>
+                                <argument>--linux-app-category</argument><argument>Network</argument>
+                                <argument>--linux-menu-group</argument><argument>Network;FileTransfer;</argument>
+                                <argument>--linux-shortcut</argument>
+                                <argument>--linux-rpm-license-type</argument><argument>MIT</argument>
+                                <argument>--java-options</argument><argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
+                                <argument>--java-options</argument><argument>-Xmx512m</argument>
+                                <argument>--dest</argument><argument>dist/linux</argument>
                             </arguments>
                         </configuration>
                     </execution>
 
-                    <!-- ── macOS .dmg ────────────────────────────── -->
+                    <!-- Linux DEB -->
                     <execution>
-                        <id>package-mac-dmg</id>
+                        <id>package-linux-deb</id>
                         <phase>package</phase>
                         <goals><goal>exec</goal></goals>
                         <configuration>
-                            <skip>${skipMac}</skip>
+                            <skip>${skipDeb}</skip>
                             <executable>jpackage</executable>
                             <arguments>
-                                <argument>--type</argument>
-                                <argument>dmg</argument>
-                                <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
-                                <argument>--name</argument>
-                                <argument>${app.name}</argument>
-                                <argument>--main-jar</argument>
-                                <argument>${project.artifactId}-${project.version}-shaded.jar</argument>
-                                 <argument>--main-class</argument>
-                                 <argument>com.peerlink.ui.Main</argument>
-                                 <argument>--app-version</argument>
-                                 <argument>${app.version}</argument>
-                                 <argument>--vendor</argument>
-                                 <argument>${app.vendor}</argument>
-                                 <argument>--description</argument>
-                                 <argument>${app.description}</argument>
-                                 <argument>--copyright</argument>
-                                 <argument>${app.copyright}</argument>
-                                 <argument>--icon</argument>
-                                 <argument>src/main/resources/icon.png</argument>
-                                 <argument>--linux-menu-group</argument>
-                                 <argument>Network;FileTransfer;</argument>
-                                 <argument>--linux-shortcut</argument>
-                                 <argument>--linux-rpm-license-type</argument>
-                                 <argument>MIT</argument>
-                                 <argument>--java-options</argument>
-                                 <argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
-                                 <argument>--java-options</argument>
-                                 <argument>-Xmx512m</argument>
-                                 <argument>--java-options</argument>
-                                 <argument>-Xms64m</argument>
-                                 <argument>--dest</argument>
-                                 <argument>dist/linux</argument>
-                                 <argument>--verbose</argument>
+                                <argument>--type</argument><argument>deb</argument>
+                                <argument>--input</argument><argument>${project.build.directory}</argument>
+                                <argument>--name</argument><argument>${app.name}</argument>
+                                <argument>--main-jar</argument><argument>${project.build.finalName}-shaded.jar</argument>
+                                <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                <argument>--app-version</argument><argument>${app.version}</argument>
+                                <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                <argument>--description</argument><argument>${app.description}</argument>
+                                <argument>--copyright</argument><argument>${app.copyright}</argument>
+                                <argument>--icon</argument><argument>src/main/resources/icon.png</argument>
+                                <argument>--linux-package-name</argument><argument>peerlink</argument>
+                                <argument>--linux-app-category</argument><argument>Network</argument>
+                                <argument>--linux-menu-group</argument><argument>Network;FileTransfer;</argument>
+                                <argument>--linux-shortcut</argument>
+                                <argument>--java-options</argument><argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
+                                <argument>--java-options</argument><argument>-Xmx512m</argument>
+                                <argument>--dest</argument><argument>dist/linux</argument>
                             </arguments>
                         </configuration>
                     </execution>
 
-                    <!-- ── macOS .pkg (alternative installer) ────── -->
-                    <execution>
-                        <id>package-mac-pkg</id>
-                        <phase>package</phase>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <skip>${skipMac}</skip>
-                            <executable>jpackage</executable>
-                            <arguments>
-                                <argument>--type</argument>
-                                <argument>pkg</argument>
-                                <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
-                                <argument>--name</argument>
-                                <argument>${app.name}</argument>
-                                <argument>--main-jar</argument>
-                                <argument>${project.artifactId}-${project.version}-shaded.jar</argument>
-                                <argument>--main-class</argument>
-                                <argument>${app.main-class}</argument>
-                                <argument>--app-version</argument>
-                                <argument>${app.version}</argument>
-                                <argument>--vendor</argument>
-                                <argument>${app.vendor}</argument>
-                                <argument>--icon</argument>
-                                <argument>src/main/resources/icon.icns</argument>
-                                <argument>--mac-package-identifier</argument>
-                                <argument>com.peerlink.PeerLink</argument>
-                                <argument>--java-options</argument>
-                                <argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
-                                <argument>--java-options</argument>
-                                <argument>-Xmx512m</argument>
-                                <argument>--dest</argument>
-                                <argument>dist/mac</argument>
-                                <argument>--verbose</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-
-                    <!-- ── Windows .exe (run on Windows only) ────── -->
+                    <!-- Windows EXE -->
                     <execution>
                         <id>package-windows-exe</id>
                         <phase>package</phase>
@@ -439,51 +248,29 @@
                             <skip>${skipWindows}</skip>
                             <executable>jpackage</executable>
                             <arguments>
-                                <argument>--type</argument>
-                                <argument>exe</argument>
-                                <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
-                                <argument>--name</argument>
-                                <argument>${app.name}</argument>
-                                <argument>--main-jar</argument>
-                                <argument>${project.artifactId}-${project.version}-shaded.jar</argument>
-                                <argument>--main-class</argument>
-                                <argument>${app.main-class}</argument>
-                                <argument>--app-version</argument>
-                                <argument>${app.version}</argument>
-                                <argument>--vendor</argument>
-                                <argument>${app.vendor}</argument>
-                                <argument>--description</argument>
-                                <argument>${app.description}</argument>
-                                <argument>--copyright</argument>
-                                <argument>${app.copyright}</argument>
-                                <argument>--icon</argument>
-                                <!-- Windows requires .ico format icon -->
-                                <argument>src/main/resources/icon.ico</argument>
+                                <argument>--type</argument><argument>exe</argument>
+                                <argument>--input</argument><argument>${project.build.directory}</argument>
+                                <argument>--name</argument><argument>${app.name}</argument>
+                                <argument>--main-jar</argument><argument>${project.build.finalName}-shaded.jar</argument>
+                                <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                <argument>--app-version</argument><argument>${app.version}</argument>
+                                <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                <argument>--description</argument><argument>${app.description}</argument>
+                                <argument>--copyright</argument><argument>${app.copyright}</argument>
+                                <argument>--icon</argument><argument>src/main/resources/icon.ico</argument>
                                 <argument>--win-dir-chooser</argument>
                                 <argument>--win-menu</argument>
-                                <argument>--win-menu-group</argument>
-                                <argument>${app.name}</argument>
+                                <argument>--win-menu-group</argument><argument>${app.name}</argument>
                                 <argument>--win-shortcut</argument>
-                                <!-- Stable UUID ensures upgrades work correctly.
-                                     Generate once with: uuidgen or any UUID tool.
-                                     NEVER change this after first release. -->
-                                <argument>--win-upgrade-uuid</argument>
-                                <argument>a1b2c3d4-e5f6-7890-abcd-ef1234567890</argument>
-                                <argument>--java-options</argument>
-                                <argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
-                                <argument>--java-options</argument>
-                                <argument>-Xmx512m</argument>
-                                <argument>--java-options</argument>
-                                <argument>-Xms64m</argument>
-                                <argument>--dest</argument>
-                                <argument>dist/windows</argument>
-                                <argument>--verbose</argument>
+                                <argument>--win-upgrade-uuid</argument><argument>${app.upgrade.uuid}</argument>
+                                <argument>--java-options</argument><argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
+                                <argument>--java-options</argument><argument>-Xmx512m</argument>
+                                <argument>--dest</argument><argument>dist/windows</argument>
                             </arguments>
                         </configuration>
                     </execution>
 
-                    <!-- ── Windows .msi (enterprise/IT deployment) ── -->
+                    <!-- Windows MSI -->
                     <execution>
                         <id>package-windows-msi</id>
                         <phase>package</phase>
@@ -492,127 +279,158 @@
                             <skip>${skipWindows}</skip>
                             <executable>jpackage</executable>
                             <arguments>
-                                <argument>--type</argument>
-                                <argument>msi</argument>
-                                <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
-                                <argument>--name</argument>
-                                <argument>${app.name}</argument>
-                                <argument>--main-jar</argument>
-                                <argument>${project.artifactId}-${project.version}-shaded.jar</argument>
-                                <argument>--main-class</argument>
-                                <argument>${app.main-class}</argument>
-                                <argument>--app-version</argument>
-                                <argument>${app.version}</argument>
-                                <argument>--vendor</argument>
-                                <argument>${app.vendor}</argument>
-                                <argument>--icon</argument>
-                                <argument>src/main/resources/icon.ico</argument>
+                                <argument>--type</argument><argument>msi</argument>
+                                <argument>--input</argument><argument>${project.build.directory}</argument>
+                                <argument>--name</argument><argument>${app.name}</argument>
+                                <argument>--main-jar</argument><argument>${project.build.finalName}-shaded.jar</argument>
+                                <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                <argument>--app-version</argument><argument>${app.version}</argument>
+                                <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                <argument>--description</argument><argument>${app.description}</argument>
+                                <argument>--copyright</argument><argument>${app.copyright}</argument>
+                                <argument>--icon</argument><argument>src/main/resources/icon.ico</argument>
                                 <argument>--win-dir-chooser</argument>
                                 <argument>--win-menu</argument>
-                                <argument>--win-upgrade-uuid</argument>
-                                <!-- Same UUID as .exe — identifies same product -->
-                                <argument>a1b2c3d4-e5f6-7890-abcd-ef1234567890</argument>
-                                <argument>--java-options</argument>
-                                <argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
-                                <argument>--java-options</argument>
-                                <argument>-Xmx512m</argument>
-                                <argument>--dest</argument>
-                                <argument>dist/windows</argument>
-                                <argument>--verbose</argument>
+                                <argument>--win-menu-group</argument><argument>${app.name}</argument>
+                                <argument>--win-shortcut</argument>
+                                <argument>--win-upgrade-uuid</argument><argument>${app.upgrade.uuid}</argument>
+                                <argument>--java-options</argument><argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
+                                <argument>--java-options</argument><argument>-Xmx512m</argument>
+                                <argument>--dest</argument><argument>dist/windows</argument>
                             </arguments>
                         </configuration>
                     </execution>
 
-                    <!-- ── Linux AppImage (all distros, no install) ── -->
+                    <!-- macOS DMG -->
+                    <execution>
+                        <id>package-mac-dmg</id>
+                        <phase>package</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <skip>${skipMac}</skip>
+                            <executable>jpackage</executable>
+                            <arguments>
+                                <argument>--type</argument><argument>dmg</argument>
+                                <argument>--input</argument><argument>${project.build.directory}</argument>
+                                <argument>--name</argument><argument>${app.name}</argument>
+                                <argument>--main-jar</argument><argument>${project.build.finalName}-shaded.jar</argument>
+                                <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                <argument>--app-version</argument><argument>${app.version}</argument>
+                                <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                <argument>--description</argument><argument>${app.description}</argument>
+                                <argument>--copyright</argument><argument>${app.copyright}</argument>
+                                <argument>--icon</argument><argument>src/main/resources/icon.icns</argument>
+                                <argument>--java-options</argument><argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
+                                <argument>--java-options</argument><argument>-Xmx512m</argument>
+                                <argument>--dest</argument><argument>dist/mac</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- Linux AppImage -->
                     <execution>
                         <id>package-linux-appimage</id>
                         <phase>package</phase>
                         <goals><goal>exec</goal></goals>
                         <configuration>
-                            <!-- AppImage requires appimagetool installed separately.
-                                 This execution creates the app-image directory first.
-                                 Run: bash build_appimage.sh after mvn package -->
-                            <skip>${skipLinux}</skip>
+                            <skip>${skipAppImage}</skip>
                             <executable>jpackage</executable>
                             <arguments>
-                                <argument>--type</argument>
-                                <argument>app-image</argument>
-                                <argument>--input</argument>
-                                <argument>${project.build.directory}</argument>
-                                <argument>--name</argument>
-                                <argument>${app.name}</argument>
-                                 <argument>--main-jar</argument>
-                                 <argument>${project.artifactId}-${project.version}-shaded.jar</argument>
-                                 <argument>--main-class</argument>
-                                 <argument>com.peerlink.ui.Main</argument>
-                                 <argument>--app-version</argument>
-                                 <argument>${app.version}</argument>
-                                 <argument>--vendor</argument>
-                                 <argument>${app.vendor}</argument>
-                                 <argument>--icon</argument>
-                                 <argument>src/main/resources/icon.png</argument>
-                                 <argument>--linux-menu-group</argument>
-                                 <argument>Network;FileTransfer;</argument>
-                                 <argument>--linux-shortcut</argument>
-                                 <argument>--linux-rpm-license-type</argument>
-                                 <argument>MIT</argument>
-                                 <argument>--java-options</argument>
-                                 <argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
-                                 <argument>--java-options</argument>
-                                 <argument>-Xmx512m</argument>
-                                 <argument>--java-options</argument>
-                                 <argument>-Xms64m</argument>
-                                 <argument>--dest</argument>
-                                 <argument>dist/linux</argument>
-                                 <argument>--verbose</argument>
+                                <argument>--type</argument><argument>app-image</argument>
+                                <argument>--input</argument><argument>${project.build.directory}</argument>
+                                <argument>--name</argument><argument>${app.name}</argument>
+                                <argument>--main-jar</argument><argument>${project.build.finalName}-shaded.jar</argument>
+                                <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                <argument>--app-version</argument><argument>${app.version}</argument>
+                                <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                <argument>--description</argument><argument>${app.description}</argument>
+                                <argument>--copyright</argument><argument>${app.copyright}</argument>
+                                <argument>--icon</argument><argument>src/main/resources/icon.png</argument>
+                                <argument>--java-options</argument><argument>--add-opens java.base/java.lang=ALL-UNNAMED</argument>
+                                <argument>--java-options</argument><argument>-Xmx512m</argument>
+                                <argument>--dest</argument><argument>dist/linux</argument>
                             </arguments>
                         </configuration>
                     </execution>
 
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         OS PROFILES — auto-activate native packaging per OS
-         ═══════════════════════════════════════════════════════════ -->
     <profiles>
-
-        <!-- Activates automatically on any Linux machine -->
+        <!-- JAR only -->
         <profile>
-            <id>linux</id>
+            <id>jar-only</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <skipRpm>true</skipRpm>
+                <skipDeb>true</skipDeb>
+                <skipWindows>true</skipWindows>
+                <skipMac>true</skipMac>
+                <skipAppImage>true</skipAppImage>
+            </properties>
+        </profile>
+
+        <!-- Linux RPM (Fedora/RHEL) -->
+        <profile>
+            <id>linux-rpm</id>
             <activation>
                 <os>
                     <family>unix</family>
                     <name>linux</name>
                 </os>
+                <file>
+                    <!-- Trigger only if RedHat-like OS is detected -->
+                    <exists>/etc/redhat-release</exists>
+                </file>
             </activation>
             <properties>
-                <skipLinux>false</skipLinux>
-                <skipMac>true</skipMac>
+                <skipRpm>false</skipRpm>
+                <skipDeb>true</skipDeb>
                 <skipWindows>true</skipWindows>
+                <skipMac>true</skipMac>
+                <skipAppImage>true</skipAppImage>
             </properties>
         </profile>
 
-        <!-- Activates automatically on macOS -->
+        <!-- Linux DEB (Ubuntu/Debian) -->
         <profile>
-            <id>mac</id>
+            <id>linux-deb</id>
             <activation>
                 <os>
-                    <family>mac</family>
+                    <family>unix</family>
+                    <name>linux</name>
                 </os>
+                <file>
+                    <!-- Trigger only if Debian-like OS is detected -->
+                    <exists>/etc/debian_version</exists>
+                </file>
             </activation>
             <properties>
-                <skipLinux>true</skipLinux>
-                <skipMac>false</skipMac>
+                <skipRpm>true</skipRpm>
+                <skipDeb>false</skipDeb>
                 <skipWindows>true</skipWindows>
+                <skipMac>true</skipMac>
+                <skipAppImage>true</skipAppImage>
             </properties>
         </profile>
 
-        <!-- Activates automatically on Windows -->
+        <!-- Linux AppImage -->
+        <profile>
+            <id>appimage</id>
+            <properties>
+                <skipRpm>true</skipRpm>
+                <skipDeb>true</skipDeb>
+                <skipWindows>true</skipWindows>
+                <skipMac>true</skipMac>
+                <skipAppImage>false</skipAppImage>
+            </properties>
+        </profile>
+
+        <!-- Windows -->
         <profile>
             <id>windows</id>
             <activation>
@@ -621,22 +439,30 @@
                 </os>
             </activation>
             <properties>
-                <skipLinux>true</skipLinux>
-                <skipMac>true</skipMac>
+                <skipRpm>true</skipRpm>
+                <skipDeb>true</skipDeb>
                 <skipWindows>false</skipWindows>
-            </properties>
-        </profile>
-
-        <!-- Manual profile: skip ALL native packaging (just build the JAR) -->
-        <profile>
-            <id>jar-only</id>
-            <properties>
-                <skipLinux>true</skipLinux>
                 <skipMac>true</skipMac>
-                <skipWindows>true</skipWindows>
+                <skipAppImage>true</skipAppImage>
             </properties>
         </profile>
 
+        <!-- Mac -->
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <skipRpm>true</skipRpm>
+                <skipDeb>true</skipDeb>
+                <skipWindows>true</skipWindows>
+                <skipMac>false</skipMac>
+                <skipAppImage>true</skipAppImage>
+            </properties>
+        </profile>
     </profiles>
 
 </project>
