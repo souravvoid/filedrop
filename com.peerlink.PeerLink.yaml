@@ -1,0 +1,57 @@
+app-id: com.peerlink.PeerLink
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk21
+command: peerlink
+
+finish-args:
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --filesystem=home/Downloads:create
+  - --filesystem=home:ro
+  - --device=dri
+  - --talk-name=org.freedesktop.Notifications
+
+modules:
+  - name: openjdk
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/openjdk21/install.sh
+      - install -Dm755 /usr/lib/sdk/openjdk21/jvm/openjdk-21/bin/java /app/bin/java-runtime
+
+  - name: peerlink
+    buildsystem: simple
+    sources:
+      - type: file
+        path: target/peerlink-1.0.0-shaded.jar
+        dest-filename: peerlink.jar
+    build-commands:
+      - install -Dm644 peerlink.jar /app/share/peerlink/peerlink.jar
+      - |
+        cat > /app/bin/peerlink << 'LAUNCHER'
+        #!/bin/bash
+        exec /app/bin/java-runtime \
+          --add-opens java.base/java.lang=ALL-UNNAMED \
+          -Xmx512m \
+          -jar /app/share/peerlink/peerlink.jar "$@"
+        LAUNCHER
+      - chmod +x /app/bin/peerlink
+
+  - name: desktop-integration
+    buildsystem: simple
+    sources:
+      - type: file
+        path: packaging/com.peerlink.PeerLink.desktop
+      - type: file
+        path: src/main/resources/icon.png
+        dest-filename: com.peerlink.PeerLink.png
+      - type: file
+        path: packaging/com.peerlink.PeerLink.metainfo.xml
+    build-commands:
+      - install -Dm644 com.peerlink.PeerLink.desktop /app/share/applications/com.peerlink.PeerLink.desktop
+      - install -Dm644 com.peerlink.PeerLink.png /app/share/icons/hicolor/256x256/apps/com.peerlink.PeerLink.png
+      - install -Dm644 com.peerlink.PeerLink.metainfo.xml /app/share/metainfo/com.peerlink.PeerLink.metainfo.xml

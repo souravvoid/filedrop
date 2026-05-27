@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=PeerLink
+GenericName=File Transfer
+Comment=Secure P2P File Transfer — No Server Required
+Exec=peerlink
+Icon=com.peerlink.PeerLink
+Categories=Network;FileTransfer;
+Terminal=false
+StartupWMClass=PeerLink
+StartupNotify=true
+Keywords=file;transfer;p2p;secure;

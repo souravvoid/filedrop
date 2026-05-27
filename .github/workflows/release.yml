@@ -1,0 +1,206 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Install AppImage tool
+        run: |
+          sudo wget -O /usr/local/bin/appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          sudo chmod +x /usr/local/bin/appimagetool
+      - name: Create placeholder icon if missing
+        run: |
+          mkdir -p src/main/resources
+          if [ ! -f src/main/resources/icon.png ]; then
+            sudo apt-get install -y imagemagick
+            convert -size 256x256 xc:#026699 \
+              -fill white -font Helvetica-Bold -pointsize 80 \
+              -gravity Center -annotate 0 "PL" \
+              src/main/resources/icon.png
+          fi
+      - name: Build Fat JAR
+        run: mvn clean package -DskipTests --batch-mode
+      - name: Build DEB
+        run: |
+          mkdir -p dist/linux
+          jpackage --type deb --input target --name PeerLink --main-jar peerlink-1.0.0-shaded.jar --main-class peerlink.Main --app-version 1.0.0 --vendor "ByteForge" --description "Secure P2P File Transfer — No Server Required" --copyright "Copyright 2025 ByteForge" --icon src/main/resources/icon.png --linux-package-name peerlink --linux-app-category net --linux-menu-group "Network;FileTransfer;" --linux-shortcut --linux-deb-maintainer "semwalsourav4@gmail.com" --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" --java-options "-Xmx512m" --java-options "-Xms64m" --dest dist/linux --verbose
+      - name: Build RPM
+        run: |
+          jpackage --type rpm --input target --name PeerLink --main-jar peerlink-1.0.0-shaded.jar --main-class peerlink.Main --app-version 1.0.0 --vendor "ByteForge" --description "Secure P2P File Transfer — No Server Required" --copyright "Copyright 2025 ByteForge" --icon src/main/resources/icon.png --linux-package-name peerlink --linux-app-category net --linux-menu-group "Network;FileTransfer;" --linux-shortcut --linux-rpm-license-type MIT --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" --java-options "-Xmx512m" --java-options "-Xms64m" --dest dist/linux --verbose
+      - name: Build AppImage Staging
+        run: |
+          jpackage --type app-image --input target --name PeerLink --main-jar peerlink-1.0.0-shaded.jar --main-class peerlink.Main --app-version 1.0.0 --vendor "ByteForge" --icon src/main/resources/icon.png --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" --java-options "-Xmx512m" --dest dist/appimage-staging --verbose
+      - name: Create AppDir structure
+        run: |
+          APP_DIR="dist/appimage-staging/PeerLink"
+          cat > "$APP_DIR/AppRun" << 'EOF'
+          #!/bin/bash
+          SELF=$(readlink -f "$0")
+          HERE=$(dirname "$SELF")
+          export PATH="$HERE/bin:$PATH"
+          export LD_LIBRARY_PATH="$HERE/lib:$LD_LIBRARY_PATH"
+          exec "$HERE/bin/PeerLink" "$@"
+          EOF
+          chmod +x "$APP_DIR/AppRun"
+          cat > "$APP_DIR/PeerLink.desktop" << 'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=PeerLink
+          Comment=Secure P2P File Transfer — No Server Required
+          Exec=PeerLink
+          Icon=peerlink
+          Categories=Network;FileTransfer;
+          Terminal=false
+          StartupNotify=true
+          EOF
+          cp src/main/resources/icon.png "$APP_DIR/peerlink.png"
+      - name: Package AppImage
+        run: |
+          ARCH=x86_64 appimagetool dist/appimage-staging/PeerLink dist/linux/PeerLink-1.0.0-x86_64.AppImage
+          chmod +x dist/linux/PeerLink-1.0.0-x86_64.AppImage
+      - name: Create tar.gz
+        run: |
+          cd dist/appimage-staging
+          tar -czf ../linux/peerlink-1.0.0-linux.tar.gz PeerLink/
+          cd -
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: dist/linux/
+
+  build-macos:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Create placeholder icon.icns if missing
+        run: |
+          mkdir -p src/main/resources
+          if [ ! -f src/main/resources/icon.png ]; then
+            # Not using imagemagick on macos to keep it simple, just touch an empty file or assume icon exists
+            touch src/main/resources/icon.png
+          fi
+          touch src/main/resources/icon.icns
+      - name: Build Fat JAR
+        run: mvn clean package -DskipTests --batch-mode
+      - name: Build DMG
+        run: |
+          mkdir -p dist/mac
+          jpackage --type dmg --input target --name PeerLink --main-jar peerlink-1.0.0-shaded.jar --main-class peerlink.Main --app-version 1.0.0 --vendor "ByteForge" --description "Secure P2P File Transfer" --copyright "Copyright 2025 ByteForge" --icon src/main/resources/icon.icns --mac-package-name "PeerLink" --mac-package-identifier "com.peerlink.PeerLink" --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" --java-options "-Xmx512m" --java-options "-Xms64m" --dest dist/mac --verbose
+      - name: Build PKG
+        run: |
+          jpackage --type pkg --input target --name PeerLink --main-jar peerlink-1.0.0-shaded.jar --main-class peerlink.Main --app-version 1.0.0 --vendor "ByteForge" --icon src/main/resources/icon.icns --mac-package-identifier "com.peerlink.PeerLink" --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" --java-options "-Xmx512m" --dest dist/mac --verbose
+      - name: Ad-hoc sign both artifacts
+        run: |
+          codesign --force --deep --sign - dist/mac/PeerLink-1.0.0.app || true
+          codesign --force --sign - dist/mac/PeerLink-1.0.0.dmg || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: dist/mac/
+
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Create placeholder icon.ico
+        shell: powershell
+        run: |
+          if (!(Test-Path -Path "src/main/resources")) { New-Item -ItemType Directory -Force -Path "src/main/resources" | Out-Null }
+          if (!(Test-Path -Path "src/main/resources/icon.ico")) { New-Item -ItemType File -Force -Path "src/main/resources/icon.ico" | Out-Null }
+      - name: Build Fat JAR
+        run: mvn clean package -DskipTests --batch-mode
+      - name: Build EXE
+        run: |
+          New-Item -ItemType Directory -Force -Path "dist\windows"
+          jpackage --type exe --input target --name PeerLink --main-jar peerlink-1.0.0-shaded.jar --main-class peerlink.Main --app-version 1.0.0 --vendor "ByteForge" --description "Secure P2P File Transfer" --copyright "Copyright 2025 ByteForge" --icon src\main\resources\icon.ico --win-dir-chooser --win-menu --win-menu-group "PeerLink" --win-shortcut --win-shortcut-prompt --win-upgrade-uuid "a1b2c3d4-e5f6-7890-abcd-ef1234567890" --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" --java-options "-Xmx512m" --java-options "-Xms64m" --dest dist\windows --verbose
+      - name: Build MSI
+        run: |
+          jpackage --type msi --input target --name PeerLink --main-jar peerlink-1.0.0-shaded.jar --main-class peerlink.Main --app-version 1.0.0 --vendor "ByteForge" --icon src\main\resources\icon.ico --win-dir-chooser --win-menu --win-menu-group "PeerLink" --win-shortcut --win-upgrade-uuid "a1b2c3d4-e5f6-7890-abcd-ef1234567890" --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" --java-options "-Xmx512m" --dest dist\windows --verbose
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: dist\windows\
+
+  create-release:
+    runs-on: ubuntu-22.04
+    needs: [build-linux, build-macos, build-windows]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Compute SHA256 checksums for all artifacts
+        run: |
+          mkdir -p linux-artifacts macos-artifacts windows-artifacts
+          mv artifacts/linux-artifacts/* linux-artifacts/ || true
+          mv artifacts/macos-artifacts/* macos-artifacts/ || true
+          mv artifacts/windows-artifacts/* windows-artifacts/ || true
+          sha256sum linux-artifacts/*.deb linux-artifacts/*.rpm linux-artifacts/*.AppImage linux-artifacts/*.flatpak linux-artifacts/*.tar.gz macos-artifacts/*.dmg macos-artifacts/*.pkg windows-artifacts/*.exe windows-artifacts/*.msi > SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: PeerLink ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            linux-artifacts/*.deb
+            linux-artifacts/*.rpm
+            linux-artifacts/*.AppImage
+            linux-artifacts/*.flatpak
+            linux-artifacts/*.tar.gz
+            macos-artifacts/*.dmg
+            macos-artifacts/*.pkg
+            windows-artifacts/*.exe
+            windows-artifacts/*.msi
+            SHA256SUMS.txt
+          body: |
+            ## PeerLink ${{ github.ref_name }}
+            
+            Secure P2P file transfer with no server, no cloud,
+            no third party. ECDH + AES-256-GCM encrypted.
+            
+            ### Downloads
+            
+            | Platform | Package | Install |
+            |----------|---------|---------|
+            | Linux (Debian/Ubuntu) | `.deb` | `sudo dpkg -i peerlink.deb` |
+            | Linux (Fedora/RHEL)   | `.rpm` | `sudo dnf install peerlink.rpm` |
+            | Linux (All distros)   | `.AppImage` | `chmod +x && ./PeerLink.AppImage` |
+            | Linux (Flatpak)       | `.flatpak` | `flatpak install PeerLink.flatpak` |
+            | macOS                 | `.dmg` | Drag to Applications |
+            | Windows               | `.exe` | Double-click installer |
+            | Windows (Enterprise)  | `.msi` | `msiexec /i PeerLink.msi` |
+            | Any (JRE 21+ needed)  | `.jar` | `java -jar peerlink.jar` |
+            
+            ### Security
+            - ECDH secp256r1 key exchange (forward secrecy per session)
+            - AES-256-GCM encryption (authenticated, tamper-proof)
+            - No key material ever transmitted over the network
+            - Open source — audit the code yourself
+            
+            ### Checksums
+            See `SHA256SUMS.txt` to verify your download.

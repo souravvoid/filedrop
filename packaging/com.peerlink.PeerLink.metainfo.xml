@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.peerlink.PeerLink</id>
+  <name>PeerLink</name>
+  <summary>Secure P2P File Transfer — No Server Required</summary>
+  <description>
+    <p>
+      PeerLink transfers files directly between two machines using
+      end-to-end encryption. No server, no cloud, no third party.
+      Uses ECDH key exchange and AES-256-GCM encryption.
+    </p>
+    <ul>
+      <li>Direct machine-to-machine TCP transfer</li>
+      <li>ECDH + AES-256-GCM encryption</li>
+      <li>Invite code system — no account required</li>
+      <li>Works on Linux, macOS, and Windows</li>
+    </ul>
+  </description>
+  <url type="homepage">https://github.com/souravvoid/filedrop</url>
+  <url type="bugtracker">https://github.com/souravvoid/filedrop</url>
+  <launchable type="desktop-id">com.peerlink.PeerLink.desktop</launchable>
+  <provides><binary>peerlink</binary></provides>
+  <releases>
+    <release version="1.0.0" date="2025-04-01">
+      <description><p>Initial release.</p></description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

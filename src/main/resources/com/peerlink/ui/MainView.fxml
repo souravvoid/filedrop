@@ -3,79 +3,180 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<BorderPane styleClass="root" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.peerlink.ui.MainController">
+<BorderPane styleClass="root-pane" 
+    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.peerlink.ui.MainController">
 
-    <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+    <!-- TITLE BAR -->
+    <top>
+        <HBox styleClass="title-bar" alignment="CENTER_LEFT" spacing="8">
+            <padding>
+                <Insets top="0" right="16" bottom="0" left="16"/>
+            </padding>
+            <Label text="●" styleClass="title-bar-dot"/>
+            <Label text="PeerLink" styleClass="title-bar-text"/>
+            <Region HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </top>
 
+    <!-- MAIN CONTENT -->
     <center>
-        <HBox spacing="25" alignment="CENTER">
-            <!-- LEFT PANEL: SEND -->
-            <VBox styleClass="card" spacing="20" HBox.hgrow="ALWAYS" prefWidth="350">
-                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                
-                <Label text="Send File" styleClass="title" />
-                
-                <StackPane fx:id="dropZone" styleClass="drop-zone" prefHeight="160" onDragOver="#onDragOver" onDragDropped="#onDragDropped">
-                    <VBox alignment="CENTER" spacing="12">
-                        <Label fx:id="dropZoneLabel" text="Drag &amp; Drop here" styleClass="muted-text"/>
-                        <Button text="Select File" onAction="#onSelectFile" styleClass="btn, btn-secondary" />
+            <HBox styleClass="main-content" spacing="20" alignment="CENTER" maxWidth="800">
+            <padding>
+                <Insets top="16" right="24" bottom="16" left="24"/>
+            </padding>
+
+            <!-- SEND CARD -->
+                <VBox fx:id="sendCard" styleClass="card" HBox.hgrow="ALWAYS" spacing="0" maxWidth="500">
+                <!-- Card Header -->
+                <HBox styleClass="card-header" alignment="CENTER_LEFT" spacing="8">
+                    <Label text="↑" styleClass="card-icon card-icon-send"/>
+                    <Label text="Send File" styleClass="card-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="P2P" styleClass="badge badge-send"/>
+                </HBox>
+
+                <!-- Divider -->
+                <Separator styleClass="card-divider"/>
+
+                <!-- Card Body -->
+                <VBox styleClass="card-body" VBox.vgrow="ALWAYS" spacing="12">
+                    <!-- Drop Zone -->
+                    <StackPane fx:id="dropZone" styleClass="drop-zone" prefHeight="130"
+                        onDragOver="#onDragOver" onDragDropped="#onDragDropped">
+                        <StackPane.alignment>TOP_RIGHT</StackPane.alignment>
+
+                        <!-- Default Content -->
+                        <VBox fx:id="dropZoneDefault" alignment="CENTER" spacing="6">
+                            <Label fx:id="dropZoneIcon" text="⬆" styleClass="drop-zone-icon"/>
+                            <Label fx:id="dropZoneLabel" text="Drop file here" styleClass="drop-zone-label"/>
+                            <Label text="or" styleClass="drop-zone-or"/>
+                        </VBox>
+
+                        <!-- File Selected Content -->
+                        <VBox fx:id="dropZoneFileInfo" alignment="CENTER" spacing="4"
+                            visible="false" managed="false">
+                            <Label fx:id="dropZoneFileName" text="" styleClass="drop-zone-filename"/>
+                            <Label fx:id="dropZoneFileSize" text="" styleClass="drop-zone-filesize"/>
+                        </VBox>
+
+                        <!-- Remove Button -->
+                        <Button fx:id="removeFileBtn" text="×" styleClass="remove-file-btn"
+                            visible="false" managed="false">
+                            <StackPane.alignment>TOP_RIGHT</StackPane.alignment>
+                            <StackPane.margin>
+                                <Insets top="6" right="6" bottom="0" left="0"/>
+                            </StackPane.margin>
+                        </Button>
+                    </StackPane>
+
+                    <!-- Select File Button -->
+                    <Button fx:id="selectFileBtn" text="Select File"
+                        styleClass="btn btn-secondary" onAction="#onSelectFile"
+                        maxWidth="Infinity"/>
+
+                    <!-- Spacer -->
+                    <Region VBox.vgrow="ALWAYS"/>
+
+                    <!-- Invite Code Section -->
+                    <VBox fx:id="inviteCodeSection" spacing="6" visible="false" managed="false">
+                        <Label text="YOUR INVITE CODE" styleClass="section-micro-label"/>
+                        <HBox styleClass="code-container" alignment="CENTER_LEFT" spacing="8">
+                            <Label fx:id="inviteCodeLabel" text="" styleClass="code-text"
+                                HBox.hgrow="ALWAYS" maxWidth="220"/>
+                            <Button fx:id="copyCodeBtn" text="⎘" styleClass="btn-icon"
+                                onAction="#onCopyCode"/>
+                        </HBox>
                     </VBox>
-                </StackPane>
-                
-                <VBox spacing="8">
-                    <Label text="Your Invite Code:" styleClass="label-text" />
-                    <HBox spacing="10">
-                        <TextField fx:id="sendCodeField" editable="false" promptText="Generated upon sending..." HBox.hgrow="ALWAYS" styleClass="code-field" />
-                        <Button text="Copy" onAction="#onCopyCode" styleClass="btn, btn-secondary" />
-                    </HBox>
+
+                    <!-- Send Button -->
+                    <Button fx:id="sendBtn" text="→ Start Sending"
+                        styleClass="btn btn-primary" onAction="#onSend"
+                        maxWidth="Infinity" disable="true"/>
                 </VBox>
-                
-                <Region VBox.vgrow="ALWAYS" />
-                <Button fx:id="sendBtn" text="Start Sending" onAction="#onSend" styleClass="btn, btn-primary" maxWidth="Infinity" />
             </VBox>
 
-            <!-- RIGHT PANEL: RECEIVE -->
-            <VBox styleClass="card" spacing="20" HBox.hgrow="ALWAYS" prefWidth="350">
-                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                
-                <Label text="Receive File" styleClass="title" />
-                
-                <VBox spacing="8">
-                    <Label text="Enter Invite Code to receive:" styleClass="label-text"/>
-                    <HBox spacing="10">
-                        <TextField fx:id="receiveCodeInput" promptText="e.g. 192.168.1.5:49823" HBox.hgrow="ALWAYS" styleClass="code-field" />
-                        <Button text="Paste" onAction="#onPasteCode" styleClass="btn, btn-secondary" />
-                    </HBox>
-                </VBox>
+            <!-- RECEIVE CARD -->
+                <VBox fx:id="receiveCard" styleClass="card" HBox.hgrow="ALWAYS" spacing="0" maxWidth="500">
+                <!-- Card Header -->
+                <HBox styleClass="card-header" alignment="CENTER_LEFT" spacing="8">
+                    <Label text="↓" styleClass="card-icon card-icon-receive"/>
+                    <Label text="Receive File" styleClass="card-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="ENCRYPTED" styleClass="badge badge-receive"/>
+                </HBox>
 
-                <Region VBox.vgrow="ALWAYS" />
-                <Button fx:id="receiveBtn" text="Receive File" onAction="#onReceive" styleClass="btn, btn-receive" maxWidth="Infinity" />
+                <!-- Divider -->
+                <Separator styleClass="card-divider"/>
+
+                <!-- Card Body -->
+                <VBox styleClass="card-body" VBox.vgrow="ALWAYS" spacing="12">
+                    <!-- Description -->
+                    <Label text="Enter the invite code from the sender"
+                        styleClass="receive-description" wrapText="true"/>
+
+                    <!-- Code Input Section -->
+                    <VBox spacing="6">
+                        <Label text="ENTER CODE" styleClass="section-micro-label"/>
+                        <HBox fx:id="codeInputContainer" styleClass="code-container"
+                            alignment="CENTER_LEFT" spacing="8">
+                            <TextField fx:id="inviteCodeInput" promptText="Paste invite code..."
+                                styleClass="code-field" HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="pasteCodeBtn" text="⎙" styleClass="btn-icon"
+                                onAction="#onPasteCode"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Spacer -->
+                    <Region VBox.vgrow="ALWAYS"/>
+
+                    <!-- Receive Progress Section -->
+                    <VBox fx:id="receiveProgressSection" spacing="8" visible="false" managed="false">
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label text="↓" styleClass="transfer-file-icon"/>
+                            <Label fx:id="receiveFileName" text="" styleClass="transfer-filename"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="receiveFileSize" text="" styleClass="transfer-filesize"/>
+                        </HBox>
+
+                        <StackPane styleClass="progress-track" prefHeight="8">
+                            <ProgressBar fx:id="progressBar" progress="0" maxWidth="Infinity"
+                                prefHeight="8" styleClass="progress-bar-receive"/>
+                        </StackPane>
+
+                        <HBox>
+                            <Label fx:id="receivePercent" text="0%" styleClass="transfer-percent"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="receiveSpeed" text="" styleClass="transfer-speed"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Receive Button -->
+                    <Button fx:id="receiveBtn" text="↓ Receive File"
+                        styleClass="btn btn-success" onAction="#onReceive"
+                        maxWidth="Infinity"/>
+                </VBox>
             </VBox>
         </HBox>
     </center>
 
+    <!-- STATUS PANEL -->
     <bottom>
-        <VBox styleClass="status-panel, card" spacing="15" BorderPane.margin="$x4">
-            <BorderPane.margin>
-                <Insets top="25"/>
-            </BorderPane.margin>
-            <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
-            
-            <HBox spacing="15" alignment="CENTER_LEFT">
-                <Label fx:id="statusLabel" text="Ready. Choose a file or paste a code." styleClass="status-text" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                <Button fx:id="cancelBtn" text="Cancel Transfer" onAction="#onCancel" styleClass="btn, btn-danger" visible="false" managed="false" />
-                <Button fx:id="openFolderBtn" text="Open Folder" onAction="#onOpenFolder" styleClass="btn, btn-secondary" visible="false" managed="false" />
+        <HBox fx:id="statusPanel" styleClass="status-panel" alignment="CENTER_LEFT" spacing="10">
+            <padding>
+                <Insets top="10" right="16" bottom="10" left="16"/>
+            </padding>
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label fx:id="statusDot" text="●" styleClass="status-dot status-dot-idle"/>
+                <Label fx:id="statusLabel" text="Ready to transfer" styleClass="status-text"/>
             </HBox>
-            
-            <ProgressBar fx:id="progressBar" progress="0.0" maxWidth="Infinity" prefHeight="8" visible="false" managed="false"/>
-            
-            <HBox spacing="10" fx:id="metricsBox" visible="false" managed="false">
-                <Label fx:id="speedLabel" text="Speed: 0.0 MB/s" styleClass="metrics-text" />
-                <Region HBox.hgrow="ALWAYS" />
-                <Label fx:id="etaLabel" text="ETA: --" styleClass="metrics-text" />
-            </HBox>
-        </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="cancelBtn" text="✕ Cancel"
+                styleClass="btn btn-danger-outline" onAction="#onCancel"
+                visible="false" managed="false"/>
+        </HBox>
     </bottom>
 
 </BorderPane>
