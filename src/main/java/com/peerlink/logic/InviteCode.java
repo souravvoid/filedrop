@@ -6,13 +6,7 @@ public class InviteCode {
 
     public static String encode(String host, int port) {
         String raw = host + ":" + port;
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(raw.getBytes());
-    }
-
-    public static String[] decode(String code) {
-        byte[] decodedBytes = Base64.getUrlDecoder().decode(code);
-        String raw = new String(decodedBytes);
-        int lastColonIndex = raw.lastIndexOf(":");
+        res   int lastColonIndex = raw.lastIndexOf(":");
         if (lastColonIndex == -1) {
             throw new IllegalArgumentException("Invalid invite code format.");
         }
