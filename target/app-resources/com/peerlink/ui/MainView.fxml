@@ -338,14 +338,14 @@
                                 <padding><Insets left="16" right="16" /></padding>
                                 <Label text="Developer" styleClass="settings-row-label" HBox.hgrow="ALWAYS" />
                                 <Region HBox.hgrow="ALWAYS" />
-                                <Label text="Lovepreet Singh · ByteForge" styleClass="settings-row-value" />
+                                <Label text=" Code-assembler" styleClass="settings-row-value" />
                             </HBox>
                             <Separator styleClass="settings-divider" />
                             <HBox styleClass="settings-row" spacing="12">
                                 <padding><Insets left="16" right="16" /></padding>
                                 <Label text="GitHub" styleClass="settings-row-label" HBox.hgrow="ALWAYS" />
                                 <Region HBox.hgrow="ALWAYS" />
-                                <Label text="singhdevhub-lovepreet/PeerLink" styleClass="settings-row-value" />
+                                <Label text="/souravvoid/filedrop" styleClass="settings-row-value" />
                             </HBox>
                             <Separator styleClass="settings-divider" />
                             <HBox styleClass="settings-row" spacing="12">
