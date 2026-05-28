@@ -27,7 +27,7 @@
         <app.main-class>com.peerlink.ui.Main</app.main-class>
         
         <app.name>PeerLink</app.name>
-        <app.vendor>Lovepreet Singh</app.vendor>
+        <app.vendor>Sourav</app.vendor>
         <app.description>Secure P2P File Transfer</app.description>
         <app.copyright>Copyright 2026</app.copyright>
         <app.version>${project.version}</app.version>
