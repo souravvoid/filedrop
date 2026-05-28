@@ -1,0 +1,36 @@
+# ─── Build Output ───────────────────────────────────────────────────────────
+target/
+dist/linux/PeerLink/
+dist/linux/PeerLink.AppDir/
+dependency-reduced-pom.xml
+
+# ─── IDE / Editor ────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.eclipse/
+.settings/
+.classpath
+.project
+nbproject/
+
+# ─── OS Junk ────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ─── Java ────────────────────────────────────────────────────────────────────
+*.class
+*.jar
+!src/**/*.jar
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
