@@ -94,7 +94,10 @@ public class FileReceiver {
 
         onStatus.accept("Receiving file: " + fileName + " (" + (fileSize / 1024 / 1024) + " MB)");
 
-        File outputFile = new File(saveDir, fileName);
+        // Security: sanitize sender-supplied filename to prevent path traversal attacks
+        String safeFileName = new File(fileName).getName();
+        if (safeFileName.isEmpty()) safeFileName = "received_file";
+        File outputFile = new File(saveDir, safeFileName);
         BlockingQueue<byte[]> queue = new LinkedBlockingQueue<>(8);
         byte[] POISON = new byte[0];
         long[] totalReceived = new long[1];
